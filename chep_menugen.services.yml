@@ -1,0 +1,5 @@
+services:
+  chep_menugen.generator:
+    class: Drupal\chep_menugen\GeneratorService
+    arguments: ["@menu.link_tree", "@entity_type.manager"]
+

@@ -1,0 +1,22 @@
+Consumer goods:
+  path: '<front>'
+  c_type: 'article'
+  links:
+    Platforms:
+      path: '<front>'
+      c_type: 'article'
+    Solutions:
+      path: '<front>'
+      c_type: 'article'
+    About:
+      path: 'route:<nolink>'
+      links:
+        Global CHEP:
+          path: 'route:<nolink>'
+        CHEP region specific:
+          path : 'route:<nolink>'
+        Resources:
+          path: 'route:<nolink>'
+#Retail:
+#Fresh:
+#Bulk liquid and dry:

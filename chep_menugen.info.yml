@@ -1,0 +1,7 @@
+name: CHEP menu generator
+type: module
+description: Generate chep menu system.
+core: 8.x
+package: Custom
+dependencies:
+  - menu_ui

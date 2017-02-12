@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * @file
+ * Contains chep_menugen.module..
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function chep_menugen_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the chep_menugen module.
+    case 'help.page.chep_menugen':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Generate chep menu system.') . '</p>';
+      return $output;
+
+    default:
+  }
+}

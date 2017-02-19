@@ -2,16 +2,13 @@
 
 namespace Drupal\chep_menugen;
 
-use Alchemy\Zippy\Exception\InvalidArgumentException;
 use Drupal\Component\Utility\Unicode;
-use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Menu\MenuLinkTree;
 use Drupal\system\Entity\Menu;
 use Symfony\Component\Yaml\Yaml;
 use Drupal\Core\Entity\Query\QueryFactory;
 use Drupal\Core\Menu\MenuLinkManagerInterface;
-use Drupal\system\MenuInterface;
 use Drupal\menu_link_content\Entity\MenuLinkContent;
 
 /**
@@ -225,7 +222,7 @@ class GeneratorService implements GeneratorServiceInterface {
    *   The parent menu link.
    */
   protected function generateMenuLinks(Menu $menu, array $links, $parent = NULL) {
-    $gg = 0;
+
     foreach ($links as $link => $properties) {
       // Save the link.
       /** @var \Drupal\menu_link_content\Entity\MenuLinkContent $menu_link */
@@ -257,7 +254,7 @@ class GeneratorService implements GeneratorServiceInterface {
    *   The menu link entity.
    */
   public function createLink(Menu $menu, $title, $link_path, array $properties, $parent = NULL) {
-    $gg = 0;
+
     $values = [
       'title' => $title,
       'link' => ['uri' => $link_path],
@@ -271,8 +268,30 @@ class GeneratorService implements GeneratorServiceInterface {
 
     /** @var \Drupal\Core\Entity\ContentEntityBase $entity */
     $entity = MenuLinkContent::create($values);
+
+    if (!empty($properties['attributes'])) {
+      $this->addMenuLinkAttributes($entity, ['attributes' => $properties['attributes']]);
+    }
+
     $entity->save();
     return $entity;
+  }
+
+  /**
+   * Add menu link attributes.
+   *
+   * @param \Drupal\menu_link_content\Entity\MenuLinkContent $menu_link
+   *   The menu link instance.
+   * @param array $attributes
+   *   A list of link attributes.
+   */
+  public function addMenuLinkAttributes(MenuLinkContent $menu_link, array $attributes) {
+    if (\Drupal::moduleHandler()->moduleExists('menu_link_attributes')) {
+      // @TODO Check if the attributes were configured and validate the
+      // @TODO attribute values.
+      $menu_link_options = $menu_link->link->first()->options;
+      $menu_link->link->first()->options = array_merge($menu_link_options, $attributes);
+    }
   }
 
   /**

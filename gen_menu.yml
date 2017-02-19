@@ -1,5 +1,5 @@
-test-1:
-  label: 'test 1'
+main-aa:
+  label: 'Main navigation Global'
   summary: 'Our test menu'
   links:
     Consumer goods:
@@ -11,13 +11,19 @@ test-1:
           path: 'route:<front>'
           c_type: 'article'
           weight: 0
+          attributes:
+            industry_specific: 'platforms'
         Solutions:
           path: 'route:<front>'
           c_type: 'article'
           weight: 1
+          attributes:
+            industry_specific: 'solutions'
         About:
           path: 'route:<nolink>'
           weight: 2
+          attributes:
+            industry_specific: 'about'
           links:
             Global CHEP:
               path: 'route:<nolink>'
@@ -28,6 +34,39 @@ test-1:
             Resources:
               path: 'route:<nolink>'
               weight: 2
+    Retail:
+      path: 'route:<front>'
+      c_type: 'article'
+      weight: 1
+      links:
+        Platforms:
+          path: 'route:<front>'
+          c_type: 'article'
+          weight: 0
+          attributes:
+            industry_specific: 'platforms'
+        Solutions:
+          path: 'route:<front>'
+          c_type: 'article'
+          weight: 1
+          attributes:
+            industry_specific: 'solutions'
+        About:
+          path: 'route:<nolink>'
+          weight: 2
+          attributes:
+            industry_specific: 'about'
+          links:
+            Global CHEP:
+              path: 'route:<nolink>'
+              weight: 0
+            CHEP region specific:
+              path : 'route:<nolink>'
+              weight: 1
+            Resources:
+              path: 'route:<nolink>'
+              weight: 2
+
 #Retail:
 #Fresh:
 #Bulk liquid and dry:

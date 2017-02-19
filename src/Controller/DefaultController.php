@@ -27,7 +27,7 @@ class DefaultController extends ControllerBase {
     // Create menu.
 //    $generator->createMenu();
 
-    $generator->generateMenuLink();
+    $generator->generateMenuStructure();
 
     $gg = 0;
 

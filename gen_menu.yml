@@ -5,22 +5,29 @@ test-1:
     Consumer goods:
       path: 'route:<front>'
       c_type: 'article'
+      weight: 0
       links:
         Platforms:
           path: 'route:<front>'
           c_type: 'article'
+          weight: 0
         Solutions:
           path: 'route:<front>'
           c_type: 'article'
+          weight: 1
         About:
           path: 'route:<nolink>'
+          weight: 2
           links:
             Global CHEP:
               path: 'route:<nolink>'
+              weight: 0
             CHEP region specific:
               path : 'route:<nolink>'
+              weight: 1
             Resources:
               path: 'route:<nolink>'
+              weight: 2
 #Retail:
 #Fresh:
 #Bulk liquid and dry:

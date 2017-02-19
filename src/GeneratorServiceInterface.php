@@ -9,5 +9,9 @@ namespace Drupal\chep_menugen;
  */
 interface GeneratorServiceInterface {
 
+  /**
+   * Generate a menu structure.
+   */
+  public function generateMenuStructure();
 
 }

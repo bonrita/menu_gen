@@ -4,8 +4,10 @@ namespace Drupal\chep_menugen;
 
 use Alchemy\Zippy\Exception\InvalidArgumentException;
 use Drupal\Component\Utility\Unicode;
+use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Menu\MenuLinkTree;
+use Drupal\system\Entity\Menu;
 use Symfony\Component\Yaml\Yaml;
 use Drupal\Core\Entity\Query\QueryFactory;
 use Drupal\Core\Menu\MenuLinkManagerInterface;
@@ -111,15 +113,27 @@ class GeneratorService implements GeneratorServiceInterface {
     return $file_path;
   }
 
+  /**
+   * Create a new entity.
+   *
+   * @param string $entity_type_id
+   *   The entity type id.
+   * @param null|string $bundle_key
+   *   The bunndle key.
+   *
+   * @return \Drupal\Core\Entity\EntityInterface
+   *   The entity instance.
+   */
   public function getNewEntity($entity_type_id, $bundle_key = NULL) {
     $values = [];
-    // If the entity has bundles, fetch it from the route match.
-    $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
+
     if ($bundle_key) {
       $values[$bundle_key] = $bundle_key;
     }
+
     $entity = $this->entityTypeManager->getStorage($entity_type_id)
       ->create($values);
+
     return $entity;
   }
 
@@ -187,62 +201,76 @@ class GeneratorService implements GeneratorServiceInterface {
     return $this->menuLinkManager->menuNameInUse($value);
   }
 
-  public function generateMenuLink() {
+  /**
+   * {@inheritdoc}
+   */
+  public function generateMenuStructure() {
     $items = $this->getSystemMenu();
 
     foreach ($items as $menu_id => $item_value) {
       $menu_entity = $this->createMenu($menu_id, $item_value);
+      $this->generateMenuLinks($menu_entity, $item_value['links']);
     }
 
-    $gg = 0;
   }
 
   /**
-   * Provides the menu link creation form.
+   * Generate menu links.
    *
-   * @param \Drupal\system\MenuInterface $menu
-   *   An entity representing a custom menu.
-   *
-   * @return array
-   *   Returns the menu link creation form.
+   * @param \Drupal\system\Entity\Menu $menu
+   *   The menu config entity instance.
+   * @param array $links
+   *   A list of links to add to the menu.
+   * @param null|\Drupal\menu_link_content\Entity\MenuLinkContent $parent
+   *   The parent menu link.
    */
-  public function getNewLink(MenuInterface $menu) {
-    $menu_link = $this->entityTypeManager->getStorage('menu_link_content')
-      ->create(array(
-        'id' => '',
-        'parent' => '',
-        'menu_name' => $menu->id(),
-        'bundle' => 'menu_link_content',
-      ));
-    return $menu_link;
+  protected function generateMenuLinks(Menu $menu, array $links, $parent = NULL) {
+    $gg = 0;
+    foreach ($links as $link => $properties) {
+      // Save the link.
+      /** @var \Drupal\menu_link_content\Entity\MenuLinkContent $menu_link */
+      $menu_link = $this->createLink($menu, $link, $properties['path'], $properties, $parent);
+
+      if (!empty($properties['links'])) {
+        // Process the children.
+        $this->generateMenuLinks($menu, $properties['links'], $menu_link);
+      }
+    }
   }
 
-  public function createChildLink() {
-    /** @var \Drupal\Core\Entity\ContentEntityBase $entity */
-    $entity = MenuLinkContent::create([
-      'title' => 'Example link child',
-//      'link' => ['uri' => 'internal:/node/2'],
-//      'link' => ['uri' => 'route:<nolink>'],
-      'link' => ['uri' => 'route:<front>'],
-//      'link' => ['uri' => 'https://www.drupal.org'],
+  /**
+   * Create a link.
+   *
+   * @param \Drupal\system\Entity\Menu $menu
+   *   The menu config entity instance.
+   * @param string $title
+   *   The title of the menu.
+   * @param string $link_path
+   *   The link path e.g internal:/node/2, route:<nolink>, route:<front>,
+   *   https://www.drupal.org.
+   * @param array $properties
+   *   A list of menu properties.
+   * @param null|\Drupal\menu_link_content\Entity\MenuLinkContent $parent
+   *   The parent menu link.
+   *
+   * @return \Drupal\menu_link_content\Entity\MenuLinkContent
+   *   The menu link entity.
+   */
+  public function createLink(Menu $menu, $title, $link_path, array $properties, $parent = NULL) {
+    $gg = 0;
+    $values = [
+      'title' => $title,
+      'link' => ['uri' => $link_path],
+      'menu_name' => $menu->id(),
+      'weight' => $properties['weight'] ? $properties['weight'] : 0,
+    ];
 
-      'parent' => 'menu_link_content:7ad4294e-ad40-49b2-904d-33987774e9b6',
-      'menu_name' => 'test-1',
-    ]);
-    $entity->save();
-    return $entity;
-  }
+    if ($parent && $parent instanceof MenuLinkContent) {
+      $values['parent'] = "menu_link_content:{$parent->uuid()}";
+    }
 
-  public function createParentLink() {
     /** @var \Drupal\Core\Entity\ContentEntityBase $entity */
-    $entity = MenuLinkContent::create([
-      'title' => 'Example link child',
-//      'link' => ['uri' => 'internal:/node/2'],
-//      'link' => ['uri' => 'route:<nolink>'],
-      'link' => ['uri' => 'route:<front>'],
-//      'link' => ['uri' => 'https://www.drupal.org'],
-      'menu_name' => 'test-1',
-    ]);
+    $entity = MenuLinkContent::create($values);
     $entity->save();
     return $entity;
   }
@@ -258,7 +286,7 @@ class GeneratorService implements GeneratorServiceInterface {
    * @return string
    *   The transliterated string.
    */
-  protected function transliterateMenuId($menu_id, $langcode = 'en') {
+  public function transliterateMenuId($menu_id, $langcode = 'en') {
     /** @var \Drupal\Component\Transliteration\TransliterationInterface $transliteration */
     $transliteration = \Drupal::service('transliteration');
 
@@ -272,7 +300,7 @@ class GeneratorService implements GeneratorServiceInterface {
     // or other modifiers being injected.
     $transliterated = preg_replace('@' . strtr($replace_pattern, [
         '@' => '\@',
-        chr(0) => ''
+        chr(0) => '',
       ]) . '@', $replace, $transliterated);
 
     return $transliterated;

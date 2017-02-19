@@ -23,7 +23,16 @@ class DefaultController extends ControllerBase {
     /** @var GeneratorService $generator */
     $generator = \Drupal::service('chep_menugen.generator');
     $items = $generator->getSystemMenu();
+
+    // Create menu.
+//    $generator->createMenu();
+
+    $generator->generateMenuLink();
+
     $gg = 0;
+
+
+
     return [
       '#type' => 'markup',
       '#markup' => $this->t('Implement method: hello')

@@ -22,3 +22,5 @@ function chep_menugen_help($route_name, RouteMatchInterface $route_match) {
     default:
   }
 }
+
+//hook_entity_field_values_init

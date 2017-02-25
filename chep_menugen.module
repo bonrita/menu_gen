@@ -6,12 +6,13 @@
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Implements hook_help().
  */
 function chep_menugen_help($route_name, RouteMatchInterface $route_match) {
-  switch ($route_name) {
+  switch ($route_name){
     // Main module help for the chep_menugen module.
     case 'help.page.chep_menugen':
       $output = '';
@@ -23,4 +24,38 @@ function chep_menugen_help($route_name, RouteMatchInterface $route_match) {
   }
 }
 
-//hook_entity_field_values_init
+/**
+ * Implements hook_form_BASE_FORM_ID_alter() for \Drupal\node\NodeForm.
+ *
+ * Adds menu item fields to the node form.
+ *
+ * @see chep_menugen_form_node_form_submit()
+ */
+function chep_menugen_form_node_form_alter(&$form, FormStateInterface $form_state) {
+  // @TODO Determine the menu anme dynamically.
+  $default_menu_name = 'main-aa:';
+
+  // Generate a list of possible parents (not including this link or descendants).
+  // @todo This must be handled in a #process handler.
+  $node = $form_state->getFormObject()->getEntity();
+  $defaults = menu_ui_get_menu_link_defaults($node);
+  /** @var \Drupal\node\NodeTypeInterface $node_type */
+  $node_type = $node->type->entity;
+  /** @var \Drupal\Core\Menu\MenuParentFormSelectorInterface $menu_parent_selector */
+  $menu_parent_selector = \Drupal::service('menu.parent_form_selector');
+  $menu_names = menu_ui_get_menus();
+  $type_menus = $node_type->getThirdPartySetting('menu_ui', 'available_menus', array('main'));
+  $available_menus = array();
+  foreach ($type_menus as $menu) {
+    $available_menus[$menu] = $menu_names[$menu];
+  }
+
+  $parent_element = $menu_parent_selector->parentSelectElement($default_menu_name, '', $available_menus);
+  // If no possible parent menu items were found, there is nothing to display.
+  if (empty($parent_element)) {
+    return;
+  }
+
+  $form['menu']['link']['menu_parent'] = $parent_element;
+
+}

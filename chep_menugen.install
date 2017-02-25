@@ -1,0 +1,9 @@
+<?php
+
+/**
+ * Assign a fairly higher weight to ensure our implementation of
+ * hook_module_implements_alter() is run among the last ones.
+ */
+function chep_menugen_update_8004(&$sandbox = NULL) {
+  module_set_weight('chep_menugen', 100);
+}
